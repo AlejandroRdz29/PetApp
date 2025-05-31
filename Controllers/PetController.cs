@@ -74,30 +74,35 @@ public class PetController : ControllerBase
     [HttpGet("user/{id}")]
     public IActionResult GetPetsByUser(int id)
     {
-        using var conn = GetConnection();
-        using var cmd = new MySqlCommand("ViewAllPet", conn);
-        cmd.CommandType = CommandType.StoredProcedure;
-
-        cmd.Parameters.AddWithValue("@id", id);
-        conn.Open();
-
-        var reader = cmd.ExecuteReader();
-        var pets = new List<Pet>();
-
-        while (reader.Read())
+        try
         {
-            pets.Add(new Pet
-            {
-                IdPet = reader.GetInt32("idPet"),
-                IdUser = reader.GetInt32("idUser"),
-                Name = reader.GetString("petName"),
-                Specie = reader.GetString("specie"),
-                Age = reader.GetString("age")
-            });
-        }
+            using var conn = GetConnection();
+            using var cmd = new MySqlCommand("ViewAllPet", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
 
-        conn.Close();
-        return Ok(pets);
+            cmd.Parameters.AddWithValue("@id", id);
+            conn.Open();
+
+            var reader = cmd.ExecuteReader();
+            var pets = new List<Pet>();
+
+            while (reader.Read())
+            {
+                pets.Add(new Pet
+                {
+                    IdPet = reader.GetInt32("idPet"),
+                    IdUser = reader.GetInt32("idUser"),
+                    Name = reader.GetString("petName"),
+                    Specie = reader.GetString("specie"),
+                    Age = reader.GetInt32("age")
+                });
+            }
+
+            conn.Close();
+            return Ok(pets);
+        } catch (Exception ex){
+            return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+        }
     }
 
     [HttpGet("{id}")]
@@ -119,7 +124,7 @@ public class PetController : ControllerBase
                 IdUser = reader.GetInt32("idUser"),
                 Name = reader.GetString("petName"),
                 Specie = reader.GetString("specie"),
-                Age = reader.GetString("age")
+                Age = reader.GetInt32("age")
             };
             conn.Close();
             return Ok(pet);
